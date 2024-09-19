@@ -207,7 +207,7 @@ impl FileExplorer {
     /// file_explorer.handle(Input::Right).unwrap();
     /// assert_eq!(file_explorer.cwd().display().to_string(), "/Documents");
     /// ```
-    pub fn handle<I: Into<Input>>(&mut self, input: I) -> Result<()> {
+    pub fn handle<I: Into<Input>>(&mut self, input: I) -> Result<Option<&File>> {
         let input = input.into();
 
         match input {
@@ -239,12 +239,18 @@ impl FileExplorer {
                     self.cwd = self.files.swap_remove(self.selected).path;
                     self.get_and_set_files()?;
                     self.selected = 0
+                } else {
+                    return Ok(Some(self.current()));
                 }
+            }
+            Input::ToggleHide => {
+                self.show_hidden = !self.show_hidden;
+                self.get_and_set_files()?;
             }
             Input::None => (),
         }
 
-        Ok(())
+        Ok(None)
     }
 
     /// Sets the current working directory of the file explorer.
