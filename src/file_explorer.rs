@@ -48,12 +48,14 @@ use crate::{input::Input, widget::Renderer, Theme};
 /// println!("Current Directory: {}", current_working_directory.display());
 /// println!("Name: {}", current_file.name());
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone)]
 pub struct FileExplorer {
     cwd: PathBuf,
     files: Vec<File>,
     selected: usize,
     theme: Theme,
+    filter: Vec<String>,
+    show_hidden: bool,
 }
 
 impl FileExplorer {
@@ -85,6 +87,8 @@ impl FileExplorer {
             files: vec![],
             selected: 0,
             theme: Theme::default(),
+            filter: vec![],
+            show_hidden: false,
         };
 
         file_explorer.get_and_set_files()?;
@@ -112,6 +116,26 @@ impl FileExplorer {
         Ok(file_explorer)
     }
 
+    /// Creates a new instance of `FileExplorer` with a filter.
+    ///
+    /// This method initializes a `FileExplorer` with the current working directory.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use ratatui_explorer::FileExplorer;
+    ///
+    /// let file_explorer = FileExplorer::with_theme(Theme::default().add_default_title()).unwrap();
+    /// ```
+    #[inline]
+    pub fn with_filter(filter: Vec<String>) -> Result<FileExplorer> {
+        let mut file_explorer = Self::new()?;
+
+        file_explorer.filter = filter;
+
+        Ok(file_explorer)
+    }
+
     /// Build a ratatui widget to render the file explorer. The widget can then
     /// be rendered with [Frame::render_widget](https://docs.rs/ratatui/latest/ratatui/terminal/struct.Frame.html#method.render_widget).
     ///
@@ -131,7 +155,7 @@ impl FileExplorer {
     ///         f.render_widget(&widget, f.area());
     ///     }).unwrap();
     ///
-    ///     // ...
+    ///     // ...,
     /// }
     /// ```
     #[inline]
@@ -258,6 +282,22 @@ impl FileExplorer {
     #[inline]
     pub fn set_theme(&mut self, theme: Theme) {
         self.theme = theme;
+    }
+
+    /// Sets the filter of the file explorer.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use ratatui_explorer::FileExplorer;
+    ///
+    /// let mut file_explorer = FileExplorer::new().unwrap();
+    ///
+    /// let _ = file_explorer.set_filter(vec!["png".to_string(), "jpeg".to_string()]);
+    /// ```
+    pub fn set_filter(&mut self, filter: Vec<String>) -> Result<()> {
+        self.filter = filter;
+        self.get_and_set_files()
     }
 
     /// Sets the selected file or directory index inside the current [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files
@@ -449,17 +489,28 @@ impl FileExplorer {
     fn get_and_set_files(&mut self) -> Result<()> {
         let (mut dirs, mut none_dirs): (Vec<_>, Vec<_>) = std::fs::read_dir(&self.cwd)?
             .filter_map(|entry| {
-                entry.ok().map(|e| {
+                if let Ok(e) = entry {
                     let path = e.path();
                     let is_dir = path.is_dir();
-                    let name = if is_dir {
-                        format!("{}/", e.file_name().to_string_lossy())
-                    } else {
-                        e.file_name().to_string_lossy().into_owned()
+                    let name = match e {
+                        e if is_dir => format!("{}/", e.file_name().to_string_lossy()),
+                        e if self.filter.is_empty()
+                            | self
+                                .filter
+                                .contains(&path.extension()?.to_string_lossy().to_string()) =>
+                        {
+                            e.file_name().to_string_lossy().into_owned()
+                        }
+                        _ => return None,
                     };
-
-                    File { name, path, is_dir }
-                })
+                    if !self.show_hidden && name.starts_with(".") {
+                        None
+                    } else {
+                        Some(File { name, path, is_dir })
+                    }
+                } else {
+                    None
+                }
             })
             .partition(|file| file.is_dir);
 

@@ -18,6 +18,8 @@ pub enum Input {
     Left,
     /// Go to the child directory (if the selected item is a directory).
     Right,
+    /// Toggle Hidden files
+    ToggleHide,
     /// Do nothing (used for converting events from other libraries, like
     /// [crossterm](https://docs.rs/crossterm/latest/crossterm/event/enum.Event.html),
     /// [termion](https://docs.rs/termion/latest/termion/event/enum.Event.html) and
