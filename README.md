@@ -6,6 +6,8 @@ Features:
 - File explorer functionality.
 - Input handling (from [crossterm](https://docs.rs/crossterm/latest/crossterm/), [termion](https://docs.rs/termion/latest/termion/), [termwiz](https://docs.rs/termwiz/latest/termwiz/) and your own backend).
 - Customizable widget theming.
+- Filter show files
+- Show/Hide hidden files and folders
 
 # Examples
 
@@ -115,11 +117,12 @@ let theme = Theme::default()
 The following bindings are used by default for [crossterm](https://docs.rs/crossterm/latest/crossterm/),
 [termion](https://docs.rs/termion/latest/termion/) and [termwiz](https://docs.rs/termwiz/latest/termwiz/).
 
-| Binding                           | Action                     |
-|-----------------------------------|----------------------------|
-| `j`, `<DownArrow>`                | Move the selection down    |
-| `k`, `<UpArrow>`                  | Move the selection up      |
-| `h`, `<LeftArrow>`, `<Backspace>` | Go to the parent directory |
-| `l`, `<RightArrow>`, `<Enter>`    | Go to the child directory* |
+| Binding                           | Action                                    |
+|-----------------------------------|-------------------------------------------|
+| `j`, `<DownArrow>`                | Move the selection down                   |
+| `k`, `<UpArrow>`                  | Move the selection up                     |
+| `h`, `<LeftArrow>`, `<Backspace>` | Go to the parent directory                |
+| `l`, `<RightArrow>`, `<Enter>`    | Go to the child directory*, or select file|
+| `H`                               | Toggle hidden files                       |
 
 _*if the selected item is a directory_
