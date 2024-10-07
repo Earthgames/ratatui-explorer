@@ -501,15 +501,19 @@ impl FileExplorer {
                     let name = match e {
                         e if is_dir => format!("{}/", e.file_name().to_string_lossy()),
                         e if self.filter.is_empty()
-                            | self
-                                .filter
-                                .contains(&path.extension()?.to_string_lossy().to_string()) =>
+                            || self.filter.contains(
+                                &path
+                                    .extension()
+                                    .unwrap_or_default()
+                                    .to_string_lossy()
+                                    .to_string(),
+                            ) =>
                         {
                             e.file_name().to_string_lossy().into_owned()
                         }
                         _ => return None,
                     };
-                    if !self.show_hidden && name.starts_with(".") {
+                    if !self.show_hidden && name.starts_with('.') {
                         None
                     } else {
                         Some(File { name, path, is_dir })
