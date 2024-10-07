@@ -246,6 +246,9 @@ impl FileExplorer {
             Input::ToggleHide => {
                 self.show_hidden = !self.show_hidden;
                 self.get_and_set_files()?;
+                if self.selected >= self.files.len() {
+                    self.selected = self.files.len() - 1;
+                }
             }
             Input::None => (),
         }
