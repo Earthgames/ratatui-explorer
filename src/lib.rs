@@ -9,9 +9,7 @@
 #![warn(rustdoc::missing_crate_level_docs)]
 #![warn(rustdoc::unescaped_backticks)]
 mod file_explorer;
-mod input;
 mod widget;
 
 pub use file_explorer::{File, FileExplorer};
-pub use input::Input;
 pub use widget::Theme;

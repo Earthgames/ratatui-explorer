@@ -157,7 +157,7 @@ impl FileExplorer {
         let mut file_explorer = Self::new()?;
 
         file_explorer.filter = filter;
-        file_explorer.get_and_set_files();
+        file_explorer.get_and_set_files()?;
 
         Ok(file_explorer)
     }
