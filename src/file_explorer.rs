@@ -1,8 +1,9 @@
 use std::{io::Result, path::PathBuf};
 
 use ratatui::widgets::WidgetRef;
+use ratatui_eventInput::{Input, Key};
 
-use crate::{input::Input, widget::Renderer, Theme};
+use crate::{widget::Renderer, Theme};
 
 /// A file explorer that allows browsing and selecting files and directories.
 ///
@@ -56,6 +57,29 @@ pub struct FileExplorer {
     theme: Theme,
     filter: Vec<String>,
     show_hidden: bool,
+    keys: KeyMap,
+}
+
+type Inputs = Vec<Input>;
+
+#[derive(Debug, Clone)]
+pub struct KeyMap {
+    pub list_up: Inputs,
+    pub list_down: Inputs,
+    pub folder_enter: Inputs,
+    pub folder_exit: Inputs,
+    pub hide_toggle: Inputs,
+}
+impl Default for KeyMap {
+    fn default() -> Self {
+        Self {
+            list_down: Input::keys(&[Key::Char('j'), Key::Down]),
+            list_up: Input::keys(&[Key::Char('k'), Key::Up]),
+            folder_exit: Input::keys(&[Key::Char('h'), Key::Left]),
+            folder_enter: Input::keys(&[Key::Char('l'), Key::Right]),
+            hide_toggle: Input::keys(&[Key::Char('H')]),
+        }
+    }
 }
 
 impl FileExplorer {
@@ -89,6 +113,7 @@ impl FileExplorer {
             theme: Theme::default(),
             filter: vec![],
             show_hidden: false,
+            keys: KeyMap::default(),
         };
 
         file_explorer.get_and_set_files()?;
@@ -133,6 +158,15 @@ impl FileExplorer {
 
         file_explorer.filter = filter;
         file_explorer.get_and_set_files();
+
+        Ok(file_explorer)
+    }
+
+    //TODO: add documentation, or not :3
+    pub fn with_keymap(key_map: KeyMap) -> Result<FileExplorer> {
+        let mut file_explorer = Self::new()?;
+
+        file_explorer.keys = key_map;
 
         Ok(file_explorer)
     }
@@ -194,7 +228,7 @@ impl FileExplorer {
     /// let mut file_explorer = FileExplorer::new().unwrap();
     ///
     /// /* user select `password.png` */
-    ///
+    /// // (with default keymap)
     /// file_explorer.handle(Input::Down).unwrap();
     /// assert_eq!(file_explorer.current().name(), "resume.pdf");
     ///
@@ -209,49 +243,55 @@ impl FileExplorer {
     /// assert_eq!(file_explorer.cwd().display().to_string(), "/Documents");
     /// ```
     pub fn handle<I: Into<Input>>(&mut self, input: I) -> Result<Option<&File>> {
-        let input = input.into();
+        let input: Input = input.into();
+        let last_index = self.files.len() - 1;
 
-        match input {
-            Input::Up => {
-                if self.selected == 0 {
-                    self.selected = self.files.len() - 1;
-                } else {
-                    self.selected -= 1;
-                }
-            }
-            Input::Down => {
-                if self.selected == self.files.len() - 1 {
-                    self.selected = 0;
-                } else {
-                    self.selected += 1;
-                }
-            }
-            Input::Left => {
-                let parent = self.cwd.parent();
+        if input.key == Key::Right {
+            println!("right")
+        } else if input.key == Key::Left {
+            println!("left")
+        }
 
-                if let Some(parent) = parent {
-                    self.cwd = parent.to_path_buf();
-                    self.get_and_set_files()?;
-                    self.selected = 0
-                }
+        // default keys used in comments
+        // Up key
+        if self.keys.list_up.contains(&input) {
+            if self.selected == 0 {
+                self.selected = last_index;
+            } else {
+                self.selected -= 1;
             }
-            Input::Right => {
-                if self.files[self.selected].path.is_dir() {
-                    self.cwd = self.files.swap_remove(self.selected).path;
-                    self.get_and_set_files()?;
-                    self.selected = 0
-                } else {
-                    return Ok(Some(self.current()));
-                }
+        // Down key
+        } else if self.keys.list_down.contains(&input) {
+            if self.selected == last_index {
+                self.selected = 0;
+            } else {
+                self.selected += 1;
             }
-            Input::ToggleHide => {
-                self.show_hidden = !self.show_hidden;
+        // Left key
+        } else if self.keys.folder_exit.contains(&input) {
+            let parent = self.cwd.parent();
+
+            if let Some(parent) = parent {
+                self.cwd = parent.to_path_buf();
                 self.get_and_set_files()?;
-                if self.selected >= self.files.len() {
-                    self.selected = self.files.len() - 1;
-                }
+                self.selected = 0
             }
-            Input::None => (),
+        // Right key
+        } else if self.keys.folder_enter.contains(&input) {
+            if self.files[self.selected].path.is_dir() {
+                self.cwd = self.files.swap_remove(self.selected).path;
+                self.get_and_set_files()?;
+                self.selected = 0
+            } else {
+                return Ok(Some(self.current()));
+            }
+        // `H` key
+        } else if self.keys.hide_toggle.contains(&input) {
+            self.show_hidden = !self.show_hidden;
+            self.get_and_set_files()?;
+            if self.selected >= self.files.len() {
+                self.selected = last_index;
+            }
         }
 
         Ok(None)
