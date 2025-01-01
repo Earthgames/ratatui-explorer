@@ -2,7 +2,7 @@
 name = "ratatui-explorer"
 version = "0.1.1"
 edition = "2021"
-authors = ["Tatounee"]
+authors = ["Tatounee", "Earthgame_s"]
 description = "ratatui-explorer is a small, but highly customizable, file explorer widget for ratatui."
 license = "MIT"
 readme = "README.md"
