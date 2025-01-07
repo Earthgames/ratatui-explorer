@@ -11,5 +11,5 @@
 mod file_explorer;
 mod widget;
 
-pub use file_explorer::{File, FileExplorer};
+pub use file_explorer::{File, FileExplorer, KeyMap};
 pub use widget::Theme;

@@ -70,6 +70,7 @@ pub struct KeyMap {
     pub folder_exit: Inputs,
     pub hide_toggle: Inputs,
 }
+
 impl Default for KeyMap {
     fn default() -> Self {
         Self {
