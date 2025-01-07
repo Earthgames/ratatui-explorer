@@ -776,6 +776,9 @@ name = "ratatui-eventInput"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e2e23859539c6bd44d10b4a058fcb9c6b03088644ea7f6954106fbf4f9bc69d"
+dependencies = [
+ "crossterm",
+]
 
 [[package]]
 name = "ratatui-explorer"

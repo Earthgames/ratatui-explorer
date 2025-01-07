@@ -18,7 +18,7 @@ crossterm = { version = "0.28.1", optional = true }
 termion = { version = "4.0.2", optional = true }
 termwiz = { version = "0.22", optional = true }
 
-ratatui-eventInput = "0.1"
+ratatui-eventInput = { version = "0.1", features = ["crossterm"]}
 ratatui = { version = "0.28.1", features = ["unstable-widget-ref"] }
 derivative = "2.2"
 
